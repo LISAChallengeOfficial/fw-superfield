@@ -1,6 +1,6 @@
 #!/bin/bash
 # 
-# Run script for flywheel/ciso Gear.
+# Run script for flywheel/Superfield.
 #
 # Authorship: Di Fan
 #
