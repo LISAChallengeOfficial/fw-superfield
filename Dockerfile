@@ -28,6 +28,7 @@ RUN apt-get update && \
     apt-get clean && \
     apt-get install bc && \
     apt-get install unzip && \
+    apt-get install -y jq && \
     apt-get install -y git && \
     pip install flywheel-gear-toolkit && \
     pip install flywheel-sdk && \
