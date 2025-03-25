@@ -22,14 +22,14 @@ log = logging.getLogger(__name__)
 def main(context: GearToolkitContext) -> None:
     """Parses config and runs."""
 
-    subject_label, session_label = get_demo()
+   # subject_label, session_label = get_demo()
 
 
     # Get pixel size from nifti header
-    pixdim = pixSize()
+    #pixdim = pixSize()
 
     # Main event
-    command = "/flywheel/v0/SF.sh" + " " + subject_label  + " " + session_label # + str(pixdim)
+    command = "/flywheel/v0/SF.sh" 
     print(command)
     exec_command(
     command,

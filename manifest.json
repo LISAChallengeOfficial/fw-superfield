@@ -50,7 +50,7 @@
     },
     "gear-builder": {
       "category": "analysis",
-      "image": "difan0224/superfield:0.0.3"
+      "image": "difan0224/superfield:0.0.9"
     },
     "kcl-app-binary": "SF.sh",
     "kcl-app-modalities": [
@@ -136,5 +136,5 @@
   "name": "superfield",
   "source": "https://github.com/levente-1/GAMBAS/tree/fw-dev",
   "url": "",
-  "version": "0.0.3"
+  "version": "0.0.9"
 }
