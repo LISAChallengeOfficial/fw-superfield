@@ -1,4 +1,3 @@
-
 FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 
 ENV HOME=/root/
@@ -16,11 +15,9 @@ RUN apt-get update && apt-get install -y \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-
 RUN wget https://bootstrap.pypa.io/get-pip.py \
     && python3.10 get-pip.py \
     && rm get-pip.py
-
 
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1
 
