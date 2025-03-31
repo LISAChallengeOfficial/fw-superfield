@@ -6,54 +6,44 @@ import warnings
 import torch
 import numpy as np
 import SimpleITK as sitk
-
+import logging
 from monai import transforms
 from monai.data import list_data_collate, decollate_batch
 from monai.inferers import sliding_window_inference
 from monai.networks.nets import SwinUNETR
 from functools import partial
+from utils.parser import parse_arguments
 
-warnings.filterwarnings("ignore")
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Disable oneDNN custom operations
+def fw_process_subject(sub, ses, config):
+    logging.info(f"Processing subject {sub} session {ses}")
+    deriv_fnames = []
+    logs = []
+    
+    # Setup model options
+    print('Step 3: Setting up model options')
+    args, raw_fnames = parse_arguments(sub, ses)
 
-description = (
-    "\n\n***********************************"
-    "\nSuper-Field enhancment of ultra-low field images with SFNet. Utility patent pending. "
-    "\nNot for use or distribution outside the use of the Gates/UNITY project. "
-    "\nFor questions, please contact Austin Tapp at atapp@childrensnational.org. "
-    "\n\nIf you use this algorithm for any of your work, please ensure it is cited as follows:\n\n"
-    "Tapp, A. et al. (2024). Super-Field MRI Synthesis for Infant Brains Enhanced by Dual Channel Latent Diffusion. "
-    "In: Linguraru, M.G., et al. Medical Image Computing and Computer Assisted Intervention – MICCAI 2024. "
-    "MICCAI 2024. Lecture Notes in Computer Science, vol 15003. Springer, Cham. "
-    "https://doi.org/10.1007/978-3-031-72384-1_42"
-    "\n\n***********************************"
-)
+    print(f"args: {args}")
 
-print(description)
+    print("Step 4: Running inference")
+    fname = inference(
+        args.input_folder, 
+        args.output_folder, 
+        args.spacing, 
+        args.intensity_upper, 
+        args.sw_overlap, 
+        args.sw_batch_size) 
 
-def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description=description,
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-    parser.add_argument('--spacing', type=float, nargs=3, default=[1.0, 1.0, 1.0],
-                        help='Target spacing for resampling (default: 1.0, 1.0, 1.0)')
-    parser.add_argument('--intensity_upper', type=int, default=3000,
-                        help='Upper limit for intensity scaling (default: 3000)')
-    parser.add_argument('--input_folder', type=str, required=True,
-                        help='Path to the input folder containing .nii.gz images')
-    parser.add_argument('--output_folder', type=str, required=True,
-                        help='Path to the output folder for processed images')
-    parser.add_argument('--sw_overlap', type=float, default=0.9,
-                        help='Sliding window overlap for inference (default: 0.9)')
-    parser.add_argument('--sw_batch_size', type=int, default=8,
-                        help='Sliding window batch size (default: 8)')
-    if '--help' in os.sys.argv or '-h' in os.sys.argv:
-        print("\n\nExample usage:\n\n"
-              "python script.py --input_folder /path/to/input --output_folder /path/to/output "
-              "--spacing 1.0 1.0 1.0 --intensity_upper 2500 --sw_overlap 0.8")
-    return parser.parse_args()
+    print("Checking if inference was successful")
+    if fname:
+        deriv_fnames.append(fname)
+        logging.info("Inference completed")
+        logging.info(f"Output file: {fname}")
+    else:
+        logging.error("Inference failed")
+        logging.error("No output file generated")
 
+    return raw_fnames, deriv_fnames, logs
 
 def resample_to_spacing(uLF, spacing):
     target_spacing = spacing
@@ -85,17 +75,26 @@ def rescale(SF, max):
     return SFrescale
 
 
-if __name__ == "__main__":
-    args = parse_arguments()
+def inference(input_folder, output_folder, spacing, intensity_upper, sw_overlap, sw_batch_size):
+    
+    warnings.filterwarnings("ignore")
+    os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Disable oneDNN custom operations
+    
+    description = (
+        "\n\n***********************************"
+        "\nSuper-Field enhancment of ultra-low field images with SFNet. Utility patent pending. "
+        "\nNot for use or distribution outside the use of the Gates/UNITY project. "
+        "\nFor questions, please contact Austin Tapp at atapp@childrensnational.org. "
+        "\n\nIf you use this algorithm for any of your work, please ensure it is cited as follows:\n\n"
+        "Tapp, A. et al. (2024). Super-Field MRI Synthesis for Infant Brains Enhanced by Dual Channel Latent Diffusion. "
+        "In: Linguraru, M.G., et al. Medical Image Computing and Computer Assisted Intervention – MICCAI 2024. "
+        "MICCAI 2024. Lecture Notes in Computer Science, vol 15003. Springer, Cham. "
+        "https://doi.org/10.1007/978-3-031-72384-1_42"
+        "\n\n***********************************"
+    )
+    print(description)
 
-    input_folder = os.path.abspath(args.input_folder)
-    output_folder = os.path.abspath(args.output_folder)
-    spacing = args.spacing
-    intensity_upper = args.intensity_upper
-    sw_overlap = args.sw_overlap
-    sw_bs = args.sw_batch_size
-
-    model_path = os.path.join("SF_model.pt")
+    model_path = os.path.join("models/SF_model.pt")
 
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
@@ -109,7 +108,7 @@ if __name__ == "__main__":
     model.to(device)
     model.eval()
 
-    inferer = partial(sliding_window_inference, roi_size=(96, 96, 96), sw_batch_size=sw_bs, predictor=model,
+    inferer = partial(sliding_window_inference, roi_size=(96, 96, 96), sw_batch_size=sw_batch_size, predictor=model,
                       overlap=sw_overlap)
 
     transform_pipeline = transforms.Compose([

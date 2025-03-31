@@ -1,13 +1,144 @@
-follow https://flywheel-io.gitlab.io/tools/app/cli/fw-beta/#:~:text=Data%20Platform.-,Installing%20locally,-The%20stable%20version to install flywheel CLI
+# Superfield
 
-docker build -t difan0224/superfield:0.0.9 ./
+## Overview
 
-docker push difan0224/superfield:0.0.9
+[Usage](#usage)
 
-fw-beta gear build .
+[FAQ](#faq)
 
-fw-beta login
+### Summary
+Takes three orthogonally acquired images (axial, coronal, sagittal) collected on Hyperfine Swoop and combines into a single 1.5mm isotropic image. 
 
-Flywheel API key: 
+Inputs: 
+-	Axial
+-	Coronal
+-	Sagittal
 
-fw-beta gear upload
+Add in details here
+
+### Cite
+
+**license:**
+
+
+**url:** 
+
+**cite:** 
+
+### Classification
+
+*Category:* analysis
+
+*Gear Level:*
+
+* [x] Project
+* [x] Subject
+* [x] Session
+* [ ] Acquisition
+* [ ] Analysis
+
+----
+
+### Inputs
+
+* api-key
+  * **Name**: api-key
+  * **Type**: object
+  * **Optional**: true
+  * **Classification**: api-key
+  * **Description**: Flywheel API key.
+
+* input
+  * **Name**: iso
+  * **Type**: file
+  * **Optional**: false
+  * **Classification**: file
+  * **Description**: Axial plane acquisition
+  
+### Config
+
+### Outputs
+Super-resolved image
+
+#### Metadata
+
+No metadata currently created by this gear
+
+### Pre-requisites
+
+- Isotropc image
+
+#### Prerequisite Gear Runs
+
+This gear runs on BIDS-organized data. To have your data BIDS-ified, it is recommended
+that you run, in the following order:
+
+1. ***dcm2niix***
+    * Level: Any
+2. ***file-metadata-importer***
+    * Level: Any
+3. ***file-classifier***
+    * Level: Any
+
+#### Prerequisite
+
+## Usage
+
+This section provides a more detailed description of the gear, including not just WHAT
+it does, but HOW it works in flywheel
+
+### Description
+
+This gear is run at either the `Subject` or the `Session` level. It downloads the data
+for that subject/session into the `/flwyhweel/v0/work/bids` folder and then runs the
+`ciso` pipeline on it.
+
+After the pipeline is run, the output folder is zipped and saved into the analysis
+container.
+
+#### File Specifications
+
+This section contains specifications on any input files that the gear may need
+
+### Workflow
+
+A picture and description of the workflow
+
+```mermaid
+  graph LR;
+    A[T2w]:::input --> FW;
+    FW[FW] --> FMI;
+    FMI((file-metadata-importer)):::gear --> FC;
+    FC((file-classifier)):::gear --> D2N;
+    D2N((dcm2niix)):::gear --> SF;
+    SF((sf)):::gear --> ANA;
+    ANA[Analysis]:::container;
+    
+    classDef container fill:#57d,color:#fff
+    classDef input fill:#7a9,color:#fff
+    classDef gear fill:#659,color:#fff
+```
+
+Description of workflow
+
+1. Upload data to container
+2. Prepare data by running the following gears:
+   1. file metadata importer
+   2. file classifier
+   3. dcm2niix
+   4. iso reconstruction
+3. Select either a subject or a session.
+4. Run the superfield gear
+5. Gear places output in Analysis
+
+### Use Cases
+
+## FAQ
+
+[FAQ.md](FAQ.md)
+
+## Contributing
+
+[For more information about how to get started contributing to that gear,
+checkout [CONTRIBUTING.md](CONTRIBUTING.md).]
+

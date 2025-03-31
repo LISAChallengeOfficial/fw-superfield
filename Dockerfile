@@ -38,17 +38,10 @@ RUN apt-get update && \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Installing main dependencies
-# FSL (add additional dep here)
-# RUN /opt/conda/bin/conda install -n base -c $FSL_CONDA_CHANNEL fsl-base fsl-utils fsl-avwutils -c conda-forge
-# set FSLDIR so FSL tools can use it, in this minimal case, the FSLDIR will be the root conda directory
 ENV PATH="/opt/conda/bin:${PATH}"
 ENV FSLDIR="/opt/conda"
-# activate FSL
-#RUN $FSLDIR/etc/fslconf/fsl.sh
 
 # Configure entrypoint
-RUN bash -c 'chmod +rx $FLYWHEEL/run.py' && \
-    bash -c 'chmod +rx $FLYWHEEL/SF.sh' \
+RUN bash -c 'chmod +rx $FLYWHEEL/run.py'
 ENTRYPOINT ["python","/flywheel/v0/run.py"] 
 

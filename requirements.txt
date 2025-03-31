@@ -138,3 +138,5 @@ webencodings==0.5.1
 Werkzeug==3.1.3
 wrapt==1.14.1
 nnunetv2
+bids 
+dcm2bids

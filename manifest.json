@@ -3,10 +3,13 @@
   "cite": "",
   "command": "python /flywheel/v0/run.py",
   "config": {
-    "gpu": {
-      "type": "boolean",
-      "default": true,
-      "description": "Set if running model on GPU"
+    "input_gear": {
+      "type": "string",
+      "default": "mrr",
+      "description": "Set the gear name of the input image",
+      "enum": [
+        "mrr"
+      ]
     },
     "phase": {
       "type": "string",
@@ -50,7 +53,7 @@
     },
     "gear-builder": {
       "category": "analysis",
-      "image": "difan0224/superfield:0.0.9"
+      "image": "flywheel/superfield:0.0.1"
     },
     "kcl-app-binary": "SF.sh",
     "kcl-app-modalities": [
@@ -123,12 +126,8 @@
     "api-key": {
       "base": "api-key",
       "read-only": true
-    },
-    "input": {
-      "base": "file",
-      "description": "input file (usually axial or isotropic reconstruction)",
-      "optional": false
     }
+
   },
   "label": "Superfield",
   "license": "MIT",
@@ -136,5 +135,5 @@
   "name": "superfield",
   "source": "https://github.com/levente-1/GAMBAS/tree/fw-dev",
   "url": "",
-  "version": "0.0.9"
+  "version": "0.0.1"
 }
