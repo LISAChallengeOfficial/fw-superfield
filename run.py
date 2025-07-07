@@ -2,27 +2,16 @@
 """The run script."""
 import logging
 import os
-import sys
+from pathlib import Path
+from typing import List, Tuple, Union
 
 # import flywheel functions
 from flywheel_gear_toolkit import GearToolkitContext
-from utils.parser import parse_config
 
-from options.test_options import TestOptions
-from models import create_model
-import SimpleITK as sitk
-from app.main import inference
-from app.main import Registration
-
-import os
-os.environ["PATH"] += os.pathsep + "/opt/ants-2.5.4/bin"
-
-
-
-# Add top-level package directory to sys.path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# Verify sys.path
-print("sys.path:", sys.path)
+from app.command_line import exec_command
+from app.findMatchedScans import find_files
+from utils.niftiHeader import pixSize
+from utils.demo import get_demo
 
 # The gear is split up into 2 main components. The run.py file which is executed
 # when the container runs. The run.py file then imports the rest of the gear as a
@@ -31,24 +20,22 @@ print("sys.path:", sys.path)
 log = logging.getLogger(__name__)
 
 def main(context: GearToolkitContext) -> None:
-    # """Parses config and runs."""
-    
-    print('Parsing config')
-    opt = TestOptions().parse()
+    """Parses config and runs."""
 
-    print('Registering images')
-    input_image = Registration(opt.image, opt.reference)
-    # sitk.WriteImage(image, outPath)
+    subject_label, session_label = get_demo()
 
-    print('Creating model')
-    model = create_model(opt)
-    model.setup(opt)
 
-    print('Running inference')
-    inference(model, input_image, opt.result_sr, opt.resample, opt.new_resolution, opt.patch_size[0],
-              opt.patch_size[1], opt.patch_size[2], opt.stride_inplane, opt.stride_layer, 1)
+    # Get pixel size from nifti header
+    pixdim = pixSize()
 
-    # have and option if gpu is called then have opt.result_gambas instead of opt.result_srs
+    # Main event
+    command = "/flywheel/v0/SF.sh" + " " + subject_label  + " " + session_label # + str(pixdim)
+    print(command)
+    exec_command(
+    command,
+    shell=True,
+    cont_output=True,
+        )
 
 # Only execute if file is run as main, not when imported by another module
 if __name__ == "__main__":  # pragma: no cover

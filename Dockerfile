@@ -1,38 +1,37 @@
 FROM nialljb/cuda-base:latest
-# FROM nialljb/cuda-mamba:latest
 
-# Setup environment for Docker image
 ENV HOME=/root/
 ENV FLYWHEEL="/flywheel/v0"
 WORKDIR $FLYWHEEL
 RUN mkdir -p $FLYWHEEL/input
 
-# Ensure pip is upgraded and install `packaging`
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel packaging
+# Installing the current project (most likely to change, above layer can be cached)
+COPY ./ $FLYWHEEL/
 
-# Install PyTorch separately before requirements.txt
-RUN pip install --no-cache-dir torch==2.2.2 torchvision==0.17.2
+# Dev dependencies (conda, jq, poetry, flywheel installed in base)
+RUN apt-get update && \
+    apt-get clean && \
+    apt-get install bc && \
+    apt-get install -y git \
+    pip install flywheel-gear-toolkit && \
+    pip install flywheel-sdk && \
+    pip install nibabel && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-# Copy and install dependencies
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install ANTs
-RUN apt-get update && apt-get install -y curl tar unzip && \
-    curl -fsSL https://github.com/ANTsX/ANTs/releases/download/v2.5.4/ants-2.5.4-almalinux8-X64-gcc.zip -o /tmp/ants.tar.gz && \
-    unzip /tmp/ants.tar.gz -d /opt/ && \
-    rm /tmp/ants.tar.gz && \
-    echo 'export PATH=/opt/ants-2.5.4/bin:$PATH' >> ~/.bashrc
-
-
-# Copy the contents of the directory the Dockerfile is into the working directory of the to be container
-COPY ./ $FLYWHEEL/
+# Installing main dependencies
+# FSL (add additional dep here)
+# RUN /opt/conda/bin/conda install -n base -c $FSL_CONDA_CHANNEL fsl-base fsl-utils fsl-avwutils -c conda-forge
+# set FSLDIR so FSL tools can use it, in this minimal case, the FSLDIR will be the root conda directory
+ENV PATH="/opt/conda/bin:${PATH}"
+ENV FSLDIR="/opt/conda"
+# activate FSL
+#RUN $FSLDIR/etc/fslconf/fsl.sh
 
 # Configure entrypoint
 RUN bash -c 'chmod +rx $FLYWHEEL/run.py' && \
-    bash -c 'chmod +rx $FLYWHEEL/app/' && \
-    bash -c ' chmod +x /opt/ants-2.5.4/bin/antsRegistrationSyNQuick.sh'
-
-
-ENTRYPOINT ["python", "/flywheel/v0/run.py"] 
-
+    bash -c 'chmod +rx $FLYWHEEL/SF.sh' \
+ENTRYPOINT ["python","/flywheel/v0/run.py"] 

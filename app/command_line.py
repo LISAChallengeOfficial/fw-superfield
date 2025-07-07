@@ -152,9 +152,13 @@ def exec_command(
     if not dry_run:
         # The "shell" parameter is needed for bash output redirects
         # (e.g. >,>>,&>)
+        if shell:
+            run_command = command # passing shell sript directly, rather than parser. # " ".join(command)
+        else:
+            run_command = command
 
         result = sp.Popen(
-            command,
+            run_command,
             stdout=sp.PIPE,
             stderr=sp.PIPE,
             universal_newlines=True,
