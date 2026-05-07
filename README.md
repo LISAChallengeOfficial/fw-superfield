@@ -8,6 +8,5 @@ fw-beta gear build .
 
 fw-beta login
 
-Flywheel API key: bmgf.flywheel.io:djE4hU5dxd1S2n9YhJYF2mkikW1WNmwMMIq845fedLFKTWiHYaVAXCzag
-
+Flywheel API key: 
 fw-beta gear upload
